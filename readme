@@ -1,0 +1,39 @@
+yarn add sucrase nodemon -D   => o sucrase substitui o require por uma sintaxe mais limpa & o nodemon detecta as alterações no código
+yarn add eslint -D
+yarn add prettier eslint-config-prettier eslint-plugin-prettier -D
+yarn add sequelize
+yarn add sequelize-cli -D
+yarn add pg pg-hstore
+yarn add bcryptjs
+yarn add jsonwebtoken
+yarn add yup => nos ajuda com a validação
+
+----------------------------------------------------------------------
+1 -> yarn sequelize migration:create --name=create-users
+2 -> edito ela do jeito que quero
+3 -> yarn sequelize db:migrate
+4 -> SE QUISER CANCELAR ESSA MIGRATION: yarn sequelize db:migrate:undo
+----------------------------------------------------------------------
+
+
+
+--------------------------------------------------------
+JWT: forma da gente fazer uma autenticação em api's rest
+--------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------------------------
+MIDDLEWARE DE AUTENTICAÇÃO: bloquear usuário em algum tipo de rota, caso ele não esteja logado
+
+--> Para fazer essa verificação (se o usuário está logado): Quando o usuário faz o login ele recebe
+um token. então precisamos desse token para fazer as próximas requisições. Vamos enviar ele pelo header
+-------------------------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------------------------------------
+VALIDANDO DADOS DA ENTRADA: tipo, precisamos que seja obrigatório o usuário passar o nome também, e não
+só o email e senha para se cadastrar, então vamos tornar essas informações obrigatórias=> yarn add yup
+-------------------------------------------------------------------------------------------------------
+
