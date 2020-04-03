@@ -1,39 +1,140 @@
-yarn add sucrase nodemon -D   => o sucrase substitui o require por uma sintaxe mais limpa & o nodemon detecta as alterações no código
-yarn add eslint -D
-yarn add prettier eslint-config-prettier eslint-plugin-prettier -D
-yarn add sequelize
-yarn add sequelize-cli -D
-yarn add pg pg-hstore
-yarn add bcryptjs
-yarn add jsonwebtoken
-yarn add yup => nos ajuda com a validação
+yarn add multer
+yarn sequelize migration:create --name=create-files  :criando a minha tabela de arquivos
+yarn sequelize migration:create --name=add-avatar-field-to-users: lê ali em baixo bro
+yarn sequelize migration:create --name=create-appointments  :criando a minha tabela de agendamentos
+yarn add date-fns@next ==> para lidarmos com datas (@next para usar a versão atual)
+yarn add
+yarn add nodemailer
+yarn add express-handlebars nodemailer-express-handlebars
+yarn add @sentry/node@5.15.4
+yarn add express-async-errors
+yarn add youch --> trata as mensagens de erro p melhor vizualização
 
-----------------------------------------------------------------------
-1 -> yarn sequelize migration:create --name=create-users
-2 -> edito ela do jeito que quero
-3 -> yarn sequelize db:migrate
-4 -> SE QUISER CANCELAR ESSA MIGRATION: yarn sequelize db:migrate:undo
-----------------------------------------------------------------------
-
-
-
---------------------------------------------------------
-JWT: forma da gente fazer uma autenticação em api's rest
---------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------
+Precisamos de uma biblioteca que saiba lidar com um tipo de corpo diferente, além do formato json. Qunado precisamos lidar
+com arquivos nas requisições das chamadas do nosso servidor, precisamos enviar essas requisições num formato chamado Multipart Form, que
+é o único formato que suporta envio de arquivos físicos, como imagens por exemplo para isso vamos usar o multer. YARN ADD multer
 
 
+depois que criamos a rota de upload, oq devemos fazer é salvar as informações que recebemos do arquivo dentro da nossa base de dados. Toda
+vez que o multer estiver agindo sobre uma rota ele libera uma variável pra gente dentro do req que se chama "req.file" (se fosse upload
+de mais de um arquivo seria req.files). Pra isso eu vou criar um fileController e criar as rotas separadamente.
 
--------------------------------------------------------------------------------------------------------
-MIDDLEWARE DE AUTENTICAÇÃO: bloquear usuário em algum tipo de rota, caso ele não esteja logado
+Beleza, após concluir essa etapa, precisamos fazer um relacionamento entre a tabela de usuários e seu avatar (files). Então precisamos
+adicionar um campo novo na nossa tabela de usuários. Para isso, preciso trabalhar dentro das migrations. Se eu simplesmente adicionar um
+campo novo na nossa migration de usuários para referenciar o file não vai dar certo, pois a migration de files foi criada depois. Então para
+isso vou criar uma migration nova só pra criar essa coluna dentro da tabela de usuários:
 
---> Para fazer essa verificação (se o usuário está logado): Quando o usuário faz o login ele recebe
-um token. então precisamos desse token para fazer as próximas requisições. Vamos enviar ele pelo header
--------------------------------------------------------------------------------------------------------
+yarn sequelize migration:create --name=add-avatar-field-to-users (usei esse nome p entender que essa migration eu estou adc o campo avatar)
+
+Essa migration vai ser um pouco diferente das outras
+
+Obs: método static em User.js para associar avatar
+-----------------------------------------------------------------------------------------------------------------------------------------
 
 
 
--------------------------------------------------------------------------------------------------------
-VALIDANDO DADOS DA ENTRADA: tipo, precisamos que seja obrigatório o usuário passar o nome também, e não
-só o email e senha para se cadastrar, então vamos tornar essas informações obrigatórias=> yarn add yup
--------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------
+Agora vamos criar uma rota p fazer a listagem de todos os prestadores de serviço da nossa aplicação. Vou criar um ProviderController,
+apesar do provider tbm ser um usuário da nossa aplicação, pois a entidade é outra
+-----------------------------------------------------------------------------------------------------------------------------------------
 
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+Model e migration da nossa tabela de agendamento: Toda vez que o usuário marcar um agendamento de serviço com algum dos prestadores, ele
+vai gerar um registro na tabela de agendamentos lá no BD: yarn sequelize migration:create --name=create-appointments
+
+Vamos fazer a referencia do agendamento pro usuário que marcou o agendamento e para qual provider está sendo feito tbm. Logo, a tabela de
+appointments vai ter 2 relacionamentos com a tabela de usuários.
+
+Para criar a funcionalidade de listagem de agendamentos do usuário logado. (basta uma nova rota rs) = AppointmentController.index().
+
+Para fazer a paginação dos agendamentos, caso o usuário tenha inúmeros. P/ isso, vou passar um req.query com o número da página nessa mesma
+rota index().... ver "limit" e "offset"
+
+Agora vou criar a listagem de agendamentos do próprio prestador de serviços. Criei um conroller só pra eles: ScheduleController
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+A partir de agora vamos conectar nossa aplicação com um banco de dados não relacional, pois vamos ter alguns dados dentro da nossa aplicação
+que não vão ser estruturados e não vão ter relacionamentos e precisam ser extremamente performáticos ==> MONGODB.
+
+Vou usar o docker para subir um container rodando a imagem do MONGODB: "docker run --name mongobarber -p 27017:27017 -d -t mongo"
+logo, nome da imagem = mongo.
+
+E agora como que faço para minha aplicação se conectar com o mongodb ? antes de mais nada: yarn add mongoose
+
+E a parte de conexão de banco de dados MONGODB, eu também vou fazer dentro do arquivo index.js dentro da pasta database, através do método
+que criei lá chamado mongo()
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+Notificando novos agendamentos:
+Vamos enviar uma notificação para o prestdor de serviço toda vez que ele receber um novo agendamento, e é pra isso que vamos utilizar o
+mongodb. Vamos armazenar as notificações dentro do mongo.
+
+Antes de mais nada prescisamos criar o nosso schema dentro do mongo, como se fosse um model que representa uma tabela. No mongo não temos
+tabela, mas sim schema, a grande diferença é que nas tabelas os dados são estruturados, ou seja, as colunas das tabelas são iguais para
+todos os registros das tabelas, nos schemas podemos ter colunas que estão presente em uma linha e em outra não.
+
+Além disso, no mongo não temos migrations, então podemos alterar o nosso schema no momento que for melhor pra gente.
+
+Outra difereça do mongo pro SQL também é que não precisamos criar aquela parte de importação dentro de Database->Index.js... eu posso
+dretamente importar esse schema em algum lugar e sair utilizando, como vamos fazer em AppointmentController
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+Como o cancelamento de agendamento é bem importante pro prestador de serviço, pois ele pode estar se preparando para aquele agendamento,
+nós vamos enviar um email para esse prestador de serviço toda vez que um cancelamento ocorrer. Para isso vamos instalar o nodemailer.
+
+config -> mail.js
+lib    -> Mail.js
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+Configurando templates de email:
+
+Templates engine = arquivos html que podem receber variáveis do node
+
+yarn add express-handlebars nodemailer-express-handlebars
+
+Criei views;emails;cancellations.hbs
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+Configurando Fila com Redis:
+
+Consgeuimos perceber que quando ocorre um cancelamento de agendamento, as rotas que fazem essa tarefa demoram um pouco mais por conta do
+envio de email. Como a gente consegue diminuir esse tempo e mesmo assim fazer com que os emails sejam enviados.
+
+A melhor forma de fazer isso é por meio de filas ou backgroundJobs (trabalhos em segundo plano).Assim, a gente consegue configurar dentro
+da nossa aplicação, alguns tipos de serviços que ficam rodando em segundo plano que executam os trabalhos que levam mais tempo, mas não
+vão modificar a resposta pro cliente ao fazer a requisição.
+
+Para configurarmos esses backgroundJobs, precisamos de um banco chave-valor (vamos utilizar o redes = banco ñ relacional que conseguimos
+salvar apenas chave e valor, e não temos schema como no mongo):
+
+"docker run --name redisbarber -p 6379:6379 -d -t redis:alpine"  & instalie uma ferramenta chamada bee-queue
+
+bee-queue = ferramenta de fila dentro do node de filas exrtremamente performáticos => yarn add bee-queue
+
+lib -> Queue.js : onde vamos configurar tudo o que é relacionado à nossa fila
+config -> redis.js
+src -> queue.js :fiz esse arquivo basicamente pq a gente não vai executar a aplicação no mesmo node/ na mesma execução que vamos rodar a fila, pois a gente pode estar rodando a fila totalmente separada da nossa app => "node src/queue.js"
+& mudei um pouco o delete dentr do meu AppointmentController.
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+OBS: VOLTAR A PARTIR DA AULA 18, ONDE NÃO CONSEGUI AVANÇAR ==> ("continuando api do gobarber")

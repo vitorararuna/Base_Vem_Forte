@@ -25,8 +25,13 @@ class User extends Model {
     }
 
 
+    //Fazer relacionamento do model de User com o de File
+    static associate(models) { //A gente podria apenar colcoar "avatar_id" ali em super init, mas isso ia nos dar problemas de relacionamento com o model file
+        this.belongsTo(models.File, { foreignKey: 'avatar_id', as: 'avatar' }); //model de usuário pertence a algum model de file, então vou ter um id de arquivo armazenado no model User. E ainda passo o nome da coluna dentro da tabela de usuários que vai armazenar a referencia pro arquivo
+    }
+    //AGORA É SÓ CHAMAR ESSE MÉTODO ASSOCIATE NO INDEX.JS DA DATABASE - OLHAR LÁ
 
-    checkPassword(password){
+    checkPassword(password) {
         return bcrypt.compare(password, this.password_hash);
     }
 
