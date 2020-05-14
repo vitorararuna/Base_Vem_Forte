@@ -4,6 +4,7 @@ import express from 'express';
 import 'express-async-errors';
 import path from 'path';
 import Youch from 'youch';
+import cors from 'cors';
 import * as Sentry from '@sentry/node';
 import sentryConfig from './config/sentry';
 import routes from './routes';
@@ -23,6 +24,7 @@ class App {
 
     middlewares() {
         this.server.use(Sentry.Handlers.requestHandler());
+        this.server.use(cors());
         this.server.use(express.json()); // enviar requisições com json na api
         this.server.use(
             '/files',
@@ -38,13 +40,9 @@ class App {
     exceptionHandler() {
         this.server.use(async (err, req, res, next) => { //quando um middleware recebe 4 parâmetros, então ele é um middleware de tratamento de exceções
 
-            if (process.env.NODE_ENV === 'development') {
-                const errors = await new Youch(err, req).toJSON();
-                return res.status(500).json(errors);
-            }
-
-            return res.staatus(500).json({ error: 'internal server error' });
-        })
+            const errors = await new Youch(err, req).toJSON();
+            return res.status(500).json(errors);
+        });
     }
 }
 

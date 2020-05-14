@@ -1,4 +1,5 @@
 import User from '../models/User';
+import File from '../models/File';
 import * as Yup from 'yup';
 
 
@@ -30,6 +31,15 @@ class UserController {
             email,
             provider,
         });
+    }
+
+    async index(req, res) {
+        console.log("bora carai")
+        const users = await User.findAll({
+            attributes: ['id', 'name', 'email', ], //indicando as informações que quero retornar
+        });
+
+        return res.json(users);
     }
 
     async update(req, res) { //para o usuário fazer alteração nos dados cadatrais dele
@@ -67,13 +77,23 @@ class UserController {
             return res.status(401).json({ error: 'Password does not match' });
         }
 
-        const { id, name, provider } = await user.update(req.body);
+        await user.update(req.body);
+
+        const { id, name, avatar } = await User.findByPk(req.userId, {
+            include: [
+                {
+                    model: File,
+                    as: 'avatar',
+                    attributes: ['id', 'path', 'url'],
+                },
+            ],
+        });
 
         return res.json({
             id,
             name,
             email,
-            provider,
+            avatar,
         });
     }
 

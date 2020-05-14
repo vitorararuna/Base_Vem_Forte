@@ -9,7 +9,7 @@ class File extends Model {
                 url: {
                     type: Sequelize.VIRTUAL,
                     get(){  //como quero formatar esse valor (url)
-                        return `${process.env.APP_URL}/${this.path}`; //rota p usuário acessar um arquivo. Não conseguimos acessar, então eu vou no app.js e usar o express.static
+                        return `http://localhost:3131/${this.path}`; //rota p usuário acessar um arquivo. Não conseguimos acessar, então eu vou no app.js e usar o express.static
                     }
                 }
             },

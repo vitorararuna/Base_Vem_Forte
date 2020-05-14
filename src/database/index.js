@@ -28,8 +28,8 @@ class Database {
 
     mongo() {
         this.mongoConnection = mongoose.connect(
-            process.env.MONGO_URL, //gobarber = nome da base de dados no mongo (coloquei igual ao postgres)
-            { useNewUrlParser: true, useFindAndModify: true, useUnifiedTopology: true } //objeto de cofiguração
+            'mongodb://localhost:27017', //gobarber = nome da base de dados no mongo (coloquei igual ao postgres)
+            { useNewUrlParser: true, useFindAndModify: false, useUnifiedTopology: true } //objeto de cofiguração
         );
     }
 }
